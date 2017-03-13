@@ -1,14 +1,14 @@
 from flask import render_template, redirect, url_for, request, g
 import boto3
+import mysql.connector
 import config
 from datetime import datetime, timedelta
 from operator import itemgetter
 from manager import admin
-import mysql.connector
-from config import db_config
 from app.forms import connect_to_database, get_db
 
 ec2 = boto3.setup_default_session(region_name='us-east-1')
+elb = boto3.client('elb')
 
 @admin.route('/ec2',methods=['GET'])
 # Display an HTML list of all ec2 instances
@@ -46,7 +46,6 @@ def ec2_view(id):
     statistic = 'Average'                   # could be Sum,Maximum,Minimum,SampleCount,Average
 
 
-
     cpu = client.get_metric_statistics(
         Period=1 * 60,
         StartTime=datetime.utcnow() - timedelta(seconds=60 * 60),
@@ -67,7 +66,6 @@ def ec2_view(id):
         cpu_stats.append([time,point['Average']])
 
     cpu_stats = sorted(cpu_stats, key=itemgetter(0))
-    #print(cpu_stats)
 
     statistic = 'Sum'  # could be Sum,Maximum,Minimum,SampleCount,Average
 
@@ -128,8 +126,22 @@ def ec2_create():
 
     ec2 = boto3.resource('ec2')
 
-    ec2.create_instances(ImageId=config.ami_id, MinCount=1, MaxCount=1, InstanceType='t2.small')
-
+    new_instance = ec2.create_instances(ImageId=config.ami_id,
+                                        KeyName='ece1779_project1',
+                                        MinCount=1,
+                                        MaxCount=1,
+                                        InstanceType='t2.small',
+                                        Monitoring={'Enabled': True},
+                                        SecurityGroupIds=[
+                                            'sg-e05d929f',
+                                        ]
+                                        )
+    attachinst = elb.register_instances_with_load_balancer(LoadBalancerName='myelb',
+                                                           Instances=[
+                                                               {
+                                                                   'InstanceId': new_instance[0].id
+                                                               }
+                                                           ])
     return redirect(url_for('ec2_list'))
 
 
@@ -139,9 +151,13 @@ def ec2_create():
 def ec2_destroy(id):
     # create connection to ec2
     ec2 = boto3.resource('ec2')
-
+    elb.deregister_instances_from_load_balancer(LoadBalancerName='myelb',
+                                                Instances=[
+                                                    {
+                                                        'InstanceId': ec2.instances.filter(InstanceIds=[id]).id
+                                                    }
+                                                ])
     ec2.instances.filter(InstanceIds=[id]).terminate()
-
     return redirect(url_for('ec2_list'))
 
 @admin.route('/ec2/terminate',methods=['POST'])
@@ -167,12 +183,3 @@ def project_terminate():
     s3.meta.client.delete_objects(Bucket="ece1779project", Delete=delete_keys)
 
     return redirect(url_for('ec2_list'))
-
-@admin.route('/ec2/config',methods=['GET','POST'])
-def project_config():
-
-# An option for configuring the auto-scaling policy by setting the following parameters:
-# CPU threshold for growing the worker pool
-# CPU threshold for shrinking the worker pool
-# Ratio by which to expand the worker pool (e.g., a ratio of 2 doubles the number of workers).
-# Ratio by which to shrink the worker pool (e.g., a ratio of 4 shuts down 75% of the current workers).
