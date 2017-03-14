@@ -13,4 +13,3 @@ Bootstrap(webapp)
 from app import views
 from app import forms
 from app import thumbnails
-from app import s3
