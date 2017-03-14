@@ -46,25 +46,26 @@ def teardown_db(exception):
 def config_form():
     return render_template("ec2/config.html")
 
-@admin.route('/ec2/config', methods=['POST'])
+@admin.route('/ec2/config', methods=['GET','POST'])
 def project_config():
-    upper_bound = request.form.get("upper_bound")
-    lower_bound = request.form.get("lower_bound")
-    expand_ratio = request.form.get("expand_ratio")
-    shrink_ratio = request.form.get("shrink_ratio")
+    if request.method == 'POST':
+        upper_bound = request.form.get("upper_bound")
+        lower_bound = request.form.get("lower_bound")
+        expand_ratio = request.form.get("expand_ratio")
+        shrink_ratio = request.form.get("shrink_ratio")
 
-    cnx = get_db()
-    cursor = cnx.cursor()
-    query = '''UPDATE config_parameters
-               SET upperbound = %s,
-                   lowerbound = %s,
-                   expandratio = %s,
-                   shrinkratio = %s
-               WHERE id = 1
-    '''
-    cursor.execute(query, (upper_bound,lower_bound,expand_ratio,shrink_ratio))
-    cnx.commit()
-    #TODO redirect to main
+        cnx = get_db()
+        cursor = cnx.cursor()
+        query = '''UPDATE config_parameters
+                   SET upperbound = %s,
+                       lowerbound = %s,
+                       expandratio = %s,
+                       shrinkratio = %s
+                   WHERE id = 1
+        '''
+        cursor.execute(query, (upper_bound,lower_bound,expand_ratio,shrink_ratio))
+        cnx.commit()
+        return redirect(url_for('main'))
     return render_template("ec2/config.html")
 # An option for configuring the auto-scaling policy by setting the following parameters:
 # CPU threshold for growing the worker pool

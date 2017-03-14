@@ -42,7 +42,7 @@
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     <a class="dropdown-item" href="{{ url_for('upload_form') }}">Upload</a>
                     <a class="dropdown-item" href="{{ url_for('image_form') }}">Transform</a>
-                    <a class="dropdown-item" href="#">Album</a>
+                    <a class="dropdown-item" href="{{ url_for('login') }}">Album</a>
                 </div>
             </li>
         </ul>
@@ -56,7 +56,7 @@
     <div class="container">
         <h1 class="display-3">Hello</h1>
         <p>##########</p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">See Thumbnails &raquo;</a></p>
+        <p><a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">See Thumbnails &raquo;</a></p>
     </div>
 </div>
 

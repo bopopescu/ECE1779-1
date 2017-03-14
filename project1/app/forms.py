@@ -99,7 +99,7 @@ def login():
                 return  render_template("/login/login.html",form=form)
             else:
                 flash(u"Login Success!",'success')
-                return render_template("/fileupload/form.html")
+                return redirect(url_for('thumb_list', username=username))
     return render_template("/login/login.html", form=form)
 
 '''
@@ -179,12 +179,12 @@ def upload_file():
                 # save the uploaded file into uploads directory and S3 bucket
                 filename = photos.save(request.files['uploadedfile'])
                 file_url = photos.url(filename)
-                s3.upload_fileobj(file, 'ece1779project', file.filename)
 
                 # rotate the image and save the 3 transformed image files into uploads directory and s3 bucket
                 fname = os.path.join('uploads', file.filename)
                 img = Image(filename=fname)
-
+                with open(fname, "rb") as image0:
+                    s3.upload_fileobj(image0, 'ece1779project', file.filename)
                 i = img.clone()
                 i.rotate(90)
                 fname_rotated1 = os.path.join('uploads','rotated1_'+ file.filename)

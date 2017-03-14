@@ -1,4 +1,5 @@
 import boto3
+import time
 import logging
 import mysql.connector
 from datetime import datetime, timedelta
@@ -64,7 +65,7 @@ lb = elb.create_load_balancer(LoadBalancerName='myelb',
 
 # add worker security groups to load balancer
 elb.apply_security_groups_to_load_balancer(LoadBalancerName='myelb',
-                                           SecurityGroups=['sg-06a36279'])
+                                           SecurityGroups=['sg-e05d929f'])
 
 # configure health check
 health_check = elb.configure_health_check(LoadBalancerName='myelb',
@@ -119,11 +120,15 @@ attachinst = elb.register_instances_with_load_balancer(LoadBalancerName='myelb',
                                                        ])
 
 while(1):
+    #wait for instance to boot up
+    time.sleep(10)
     instances = ec2.instances.filter(
     Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
     # compute the average cpu utilization now
     sum = 0.0
     num_of_instance = 0
+    num_of_new_instance = 0
+    num_of_old_instance = 0
     for instance in instances:
         cpu = client.get_metric_statistics(
             Period=1 * 60,
@@ -136,13 +141,19 @@ while(1):
         )
 
         datapoints = cpu['Datapoints']
-        last_datapoint = sorted(datapoints, key=itemgetter('Timestamp'))[-1]
-        # print (last_datapoint)
-        utilization = last_datapoint['Average']
-        # print (utilization)
-        sum = sum + utilization
-        num_of_instance = num_of_instance + 1
-    utilization = sum / num_of_instance
+        if(datapoints!=[]):
+            last_datapoint = sorted(datapoints, key=itemgetter('Timestamp'))[-1]
+            print (last_datapoint)
+            utilization = last_datapoint['Average']
+            print (utilization)
+            sum = sum + utilization
+            num_of_instance = num_of_instance + 1
+        else:
+            continue
+    if(num_of_instance!=0):
+        utilization = sum / num_of_instance
+    else:
+        continue
 
     # fetch the parameters from the database
 
