@@ -3,7 +3,7 @@ This is a project for ECE1779 intro to cloud computing in uoft.
 # Connect to Database Remotely
 Create two new instances using existing ami.
 
-worker:  
+'worker':  
 security group configuration:    
 worker_demo_security_group   
 ssh 22 anywhere  
