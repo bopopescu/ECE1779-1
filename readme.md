@@ -29,7 +29,7 @@ internal ip: 172.31.48.24
 change `config.py` database host to internal ip of your database if you are using security group. change it to external ip if you are using anywhere.
 for example, if you wrote `mysql 3306 worker_demo_security_group` instead of `mysql 3306 anywhere`, then your `config.py` should be like:
 ```
-db_config = {'user': 'root',
+db_config = {'user': 'ece1779',
              'password': 'secret',
              'host': '172.31.48.24',
              'database': 'project1'}
