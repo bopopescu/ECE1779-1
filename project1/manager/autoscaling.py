@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, g, url_for, redirect
 from manager import admin
 
 db_config = {'user': 'root',
-             'password': '12345678',
+             'password': 'ece1779pass',
              'host': '127.0.0.1',
              'database': 'project1_admin'}
 # connect to a admin database

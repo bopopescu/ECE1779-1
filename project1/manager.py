@@ -11,7 +11,7 @@ database config
 
 '''
 db_config = {'user': 'root',
-         'password': '12345678',
+         'password': 'ece1779pass',
          'host': '127.0.0.1',
          'database': 'project1_admin'}
 
