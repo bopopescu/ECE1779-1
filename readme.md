@@ -14,8 +14,6 @@ tcp 5000 anywhere
 external ip: 54.234.250.254  
 internal ip: 172.31.54.162
 
-change `config.py` database host to internal ip of your database if you are using security group. change it to external ip if you are using anywhere.
-
 `database`:  
 security group configuration:
 ```
@@ -27,6 +25,15 @@ mysql 3306 worker_demo_security_group
 
 external ip: 54.197.198.118  
 internal ip: 172.31.48.24
+
+change `config.py` database host to internal ip of your database if you are using security group. change it to external ip if you are using anywhere.
+for example, if you wrote `mysql 3306 worker_demo_security_group` instead of `mysql 3306 anywhere`, then your `config.py` should be like:
+```
+db_config = {'user': 'root',
+             'password': 'ece1779pass',
+             'host': '172.31.48.24',
+             'database': 'project1'}
+```
 
 first do `sudo passwd` to reset your UNIX password
 than do `sudo vim mysqld.cnf` to
