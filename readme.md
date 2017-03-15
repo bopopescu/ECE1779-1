@@ -44,3 +44,31 @@ bind-address = 0.0.0.0
 
 restart database  
 `sudo /etc/init.d/mysql restart`
+
+make your instance server bootstrap
+make a new file in /etc/systemd/system/
+which I called it `new.service`
+
+```
+[Unit]
+Description=Gunicorn instance to serve myproject
+After=network.target
+
+[Service]
+User=ubuntu
+ExecStart = /home/ubuntu/Desktop/ECE1779/project1/run.sh
+WorkingDirectory=/home/ubuntu/Desktop/ECE1779/project1
+Environment="PATH=/home/ubuntu/Desktop/ECE1779/project1/venv/bin"
+[Install]
+WantedBy=multi-user.target
+```
+then do this
+`systemctl enable new.service`. 
+`systemctl start new.service`. 
+`systemctl status new.service`. 
+to check whether it is working
+`run.sh`  
+```
+#!/bin/bash
+./venv/bin/gunicorn --bind 0.0.0.0:5000 --access-logfile access.log --error-logfile error.log --workers=1 app:webapp
+```
