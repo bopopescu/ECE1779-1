@@ -30,7 +30,7 @@ change `config.py` database host to internal ip of your database if you are usin
 for example, if you wrote `mysql 3306 worker_demo_security_group` instead of `mysql 3306 anywhere`, then your `config.py` should be like:
 ```
 db_config = {'user': 'root',
-             'password': 'ece1779pass',
+             'password': 'secret',
              'host': '172.31.48.24',
              'database': 'project1'}
 ```
