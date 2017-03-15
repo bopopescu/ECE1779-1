@@ -36,7 +36,7 @@ def get_db():
 boto3 config
 
 '''
-ami_id = 'ami-e3f432f5'
+ami_id = 'ami-811bb297'
 ec2 = boto3.setup_default_session(region_name='us-east-1')
 client = boto3.client('cloudwatch')
 ec2 = boto3.resource('ec2')
@@ -212,6 +212,10 @@ while(1):
     if (num_of_old_instance!=0):
         instances = ec2.instances.filter(
             Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+
+        instances = ec2.instances.filter(
+            Filters=[{'Name':'instance.group-name', 'Values':['worker_demo_security_group']}]
+        )
         i=0
         for instance in instances:
             elb.deregister_instances_from_load_balancer(LoadBalancerName='myelb',

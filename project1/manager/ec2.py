@@ -17,8 +17,12 @@ def ec2_list():
     # create connection to ec2
     ec2 = boto3.resource('ec2')
 
-#    instances = ec2.instances.filter(
-#        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    # instances = ec2.instances.filter(
+    #    Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    #
+    # instances = ec2.instances.filter(
+    #     Filters=[{'Name':'instance.group-name', 'Values':['worker_demo_security_group']}]
+    # )
 
     instances = ec2.instances.all()
 
