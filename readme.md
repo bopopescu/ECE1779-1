@@ -24,6 +24,8 @@ mysql 3306 worker_demo_security_group
 external ip: 54.197.198.118  
 internal ip: 172.31.48.24
 
+first do sudo passwd to reset your UNIX password
+than do sudo vim mysqld.cnf to
 change configuration file in /etc/mysql/mysql.conf.d/mysqld.cnf  
 bind-address = 0.0.0.0
 
