@@ -54,13 +54,13 @@ elb = boto3.client('elb')
 lb = elb.create_load_balancer(LoadBalancerName='myelb',
                                Listeners=[
                                        {
-                                           'Protocol':'HTTP',
-                                           'LoadBalancerPort':80,
-                                           'InstanceProtocol':'HTTP',
-                                           'InstancePort':80
+                                           'Protocol':'TCP',
+                                           'LoadBalancerPort':5000,
+                                           'InstanceProtocol':'TCP',
+                                           'InstancePort':5000
                                        },
                                    ],
-                               AvailabilityZones=['us-east-1a','us-east-1b']
+                               AvailabilityZones=['us-east-1a','us-east-1b','us-east-1c','us-east-1e']
                             )
 
 # add worker security groups to load balancer
@@ -70,7 +70,7 @@ elb.apply_security_groups_to_load_balancer(LoadBalancerName='myelb',
 # configure health check
 health_check = elb.configure_health_check(LoadBalancerName='myelb',
                                           HealthCheck={
-                                              'Target':'TCP:22',  #'HTTP:80/index.html
+                                              'Target': 'TCP:5000',
                                               'Timeout':5,
                                               'Interval':10,
                                               'UnhealthyThreshold':5,
