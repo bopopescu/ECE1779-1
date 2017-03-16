@@ -1,6 +1,6 @@
-This is a project for ECE1779 intro to cloud computing in uoft.
+# This is a project for ECE1779 intro to cloud computing in uoft.
 
-# Connect to Database Remotely
+## Connect to Database Remotely
 Create two new instances using existing ami.
 
 `worker`:  
@@ -45,7 +45,7 @@ bind-address = 0.0.0.0
 restart database  
 `sudo /etc/init.d/mysql restart`
 
-make your instance server bootstrap
+## Register your Server Host as a Booting Service in your Instance
 make a new file in /etc/systemd/system/
 which I called it `new.service`
 
