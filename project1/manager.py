@@ -36,7 +36,7 @@ def get_db():
 boto3 config
 
 '''
-ami_id = 'ami-811bb297'
+ami_id = 'ami-34b01822'
 ec2 = boto3.setup_default_session(region_name='us-east-1')
 client = boto3.client('cloudwatch')
 ec2 = boto3.resource('ec2')

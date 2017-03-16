@@ -260,3 +260,80 @@ def image_transform():
     return render_template("/imagetransform/view.html",
                            f1=fname[4:],
                            f2=fname_rotated[4:])
+
+
+'''
+
+Test Functions
+
+'''
+
+@webapp.route('/test/FileUpload/form',methods=['GET'])
+#Return file upload form
+def upload_form_test():
+    return render_template("fileupload/test.html")
+
+
+@webapp.route('/test/FileUpload',methods=['POST'])
+#Upload a new file and store in the systems temp directory
+def file_upload_test():
+    userid = request.form.get("userID")
+    password = request.form.get("password")
+
+    # check if the post request has the file part
+    if 'uploadedfile' not in request.files:
+        return "Missing uploaded file"
+
+    file = request.files['uploadedfile']
+
+    # if user does not select file, browser also
+    # submit a empty part without filename
+    if file.filename == '':
+        return 'Missing file name'
+
+    if file:
+        # query the database to find whether the account exist and the password is right
+        cnx = get_db()
+        cursor = cnx.cursor()
+        query = '''SELECT * FROM users WHERE login = %s AND password = %s
+        '''
+        cursor.execute(query, (userid, password))
+        row = cursor.fetchone()
+        if row is not None:
+            s3 = boto3.client('s3')
+
+            # save the uploaded file into uploads directory and S3 bucket
+            filename = photos.save(request.files['uploadedfile'])
+            file_url = photos.url(filename)
+
+            # rotate the image and save the 3 transformed image files into uploads directory and s3 bucket
+            fname = os.path.join('uploads', file.filename)
+            img = Image(filename=fname)
+            with open(fname, "rb") as image0:
+                s3.upload_fileobj(image0, 'ece1779project', file.filename)
+            i = img.clone()
+            i.rotate(90)
+            fname_rotated1 = os.path.join('uploads', 'rotated1_' + file.filename)
+            i.save(filename=fname_rotated1)
+            with open(fname_rotated1, "rb") as image1:
+                s3.upload_fileobj(image1, 'ece1779project', 'rotated1_' + file.filename)
+
+            i.rotate(90)
+            fname_rotated2 = os.path.join('uploads', 'rotated2_' + file.filename)
+            i.save(filename=fname_rotated2)
+            with open(fname_rotated2, "rb") as image2:
+                s3.upload_fileobj(image2, 'ece1779project', 'rotated2_' + file.filename)
+
+            i.rotate(90)
+            fname_rotated3 = os.path.join('uploads', 'rotated3_' + file.filename)
+            i.save(filename=fname_rotated3)
+            with open(fname_rotated3, "rb") as image3:
+                s3.upload_fileobj(image3, 'ece1779project', 'rotated3_' + file.filename)
+
+            query = '''INSERT INTO images (userid, key1, key2, key3, key4)
+                           VALUES (%s,%s,%s,%s,%s)
+            '''
+            cursor.execute(query, (int(row[0]), file.filename, 'rotated1_' + file.filename, 'rotated2_' + file.filename,
+                                   'rotated3_' + file.filename))
+            cnx.commit()
+    return "Success"

@@ -5,10 +5,39 @@ import config
 from datetime import datetime, timedelta
 from operator import itemgetter
 from manager import admin
-from app.forms import connect_to_database, get_db
 
 ec2 = boto3.setup_default_session(region_name='us-east-1')
 elb = boto3.client('elb')
+
+db_config = {'user': 'ece1779',
+             'password': 'secret',
+             'host': '172.31.62.152',
+             'database': 'project1'}
+
+'''
+
+Functions for Database
+
+'''
+
+def connect_to_database():
+    return mysql.connector.connect(user=db_config['user'],
+                                   password=db_config['password'],
+                                   host=db_config['host'],
+                                   database=db_config['database'])
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = connect_to_database()
+    return db
+
+@admin.teardown_appcontext
+# this will execute every time when the context is closed
+def teardown_db(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 @admin.route('/ec2',methods=['GET'])
 # Display an HTML list of all ec2 instances
