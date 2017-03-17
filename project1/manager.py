@@ -98,27 +98,30 @@ attachinst = elb.register_instances_with_load_balancer(LoadBalancerName='myelb',
                                                               'InstanceId':new_instance[0].id
                                                           }
                                                        ])
+#flag for booting up
+flag = 1
+num_of_instance_last_time = 0
 
 while(1):
     time.sleep(10)
-    # wait for instance to boot up
-    # check is there any pending worker instances
-    flag = 0
-    instances = ec2.instances.all()
-    for instance in instances:
-        if (instance.state['Name'] == 'pending'):
-            print('Waiting for new instance to boot up......')
-            # update the instance state
-            flag = 1
-            time.sleep(10)
-    for status in ec2.meta.client.describe_instance_status()['InstanceStatuses']:
-        if ((status['InstanceStatus']['Status']) != 'ok' or (status['SystemStatus']['Status']) != 'ok'):
-            print('Waiting for new instance to register on the load balancer and pass the status check......')
-            # update the instance state
-            flag = 1
-            time.sleep(10)
-    if (flag == 1):
-        continue
+    # # wait for instance to boot up
+    # # check is there any pending worker instances
+    # flag = 0
+    # instances = ec2.instances.all()
+    # for instance in instances:
+    #     if (instance.state['Name'] == 'pending'):
+    #         print('Waiting for new instance to boot up......')
+    #         # update the instance state
+    #         flag = 1
+    #         time.sleep(10)
+    # for status in ec2.meta.client.describe_instance_status()['InstanceStatuses']:
+    #     if ((status['InstanceStatus']['Status']) != 'ok' or (status['SystemStatus']['Status']) != 'ok'):
+    #         print('Waiting for new instance to register on the load balancer and pass the status check......')
+    #         # update the instance state
+    #         flag = 1
+    #         time.sleep(10)
+    # if (flag == 1):
+    #     continue
 
 
     # compute the average cpu utilization now
@@ -154,6 +157,12 @@ while(1):
     else:
         continue
 
+    if (num_of_instance_last_time==num_of_instance and flag==0):
+        continue
+    else:
+        flag = 1
+        num_of_instance_last_time = num_of_instance
+
     # fetch the parameters from the database
     cnx = get_db()
     cursor = cnx.cursor()
@@ -184,6 +193,7 @@ while(1):
 
     if(utilization>parameters[1]):
         num_of_new_instance = num_of_new_instance + 1
+        flag = 0
 
     if(utilization<parameters[2]):
         num_of_old_instance = num_of_old_instance + 1
