@@ -4,4 +4,4 @@ db_config = {'user': 'ece1779',
              'host': '172.31.62.152',
              'database': 'project1'}
 
-ami_id = 'ami-34b01822'
+ami_id = 'ami-26e84330'

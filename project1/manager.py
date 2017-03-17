@@ -36,7 +36,7 @@ def get_db():
 boto3 config
 
 '''
-ami_id = 'ami-34b01822'
+ami_id = 'ami-26e84330'
 ec2 = boto3.setup_default_session(region_name='us-east-1')
 client = boto3.client('cloudwatch')
 ec2 = boto3.resource('ec2')
@@ -71,32 +71,12 @@ elb.apply_security_groups_to_load_balancer(LoadBalancerName='myelb',
 health_check = elb.configure_health_check(LoadBalancerName='myelb',
                                           HealthCheck={
                                               'Target': 'TCP:5000',
-                                              'Timeout':5,
-                                              'Interval':10,
-                                              'UnhealthyThreshold':5,
-                                              'HealthyThreshold':5
+                                              'Timeout':2,
+                                              'Interval':5,
+                                              'UnhealthyThreshold':10,
+                                              'HealthyThreshold':2
                                             }
                                           )
-
-# # create the database
-# new_instance=ec2.create_instances(ImageId=database_ami_id_pre_created,
-#                                   KeyName='ece1779_project1',
-#                                   MinCount=1,
-#                                   MaxCount=1,
-#                                   InstanceType='t2.small',
-#                                   Monitoring={'Enabled': True},
-#                                   SecurityGroupIds=[
-#                                         'sg-705b940f',
-#                                     ]
-#                                   )
-# while list(ec2.instances.filter(InstanceIds=[new_instance[0].id]))[0].state.get('Name') != 'running':
-#     i=1
-# sql_host = list(ec2.instances.filter(InstanceIds=[new_instance[0].id]))[0].public_dns_name
-# userdata = '''#cloud-config
-#     runcmd:
-#      - cd /home/ubuntu/Desktop/ece1779/
-#      - ./venv/bin/python run.py {}
-#     '''.format(sql_host)
 
 # create the first worker
 new_instance=ec2.create_instances(ImageId=ami_id,
@@ -120,11 +100,30 @@ attachinst = elb.register_instances_with_load_balancer(LoadBalancerName='myelb',
                                                        ])
 
 while(1):
-    #wait for instance to boot up
     time.sleep(10)
-    instances = ec2.instances.filter(
-    Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+    # wait for instance to boot up
+    # check is there any pending worker instances
+    flag = 0
+    instances = ec2.instances.all()
+    for instance in instances:
+        if (instance.state['Name'] == 'pending'):
+            print('Waiting for new instance to boot up......')
+            # update the instance state
+            flag = 1
+            time.sleep(10)
+    for status in ec2.meta.client.describe_instance_status()['InstanceStatuses']:
+        if ((status['InstanceStatus']['Status']) != 'ok' or (status['SystemStatus']['Status']) != 'ok'):
+            print('Waiting for new instance to register on the load balancer and pass the status check......')
+            # update the instance state
+            flag = 1
+            time.sleep(10)
+    if (flag == 1):
+        continue
+
+
     # compute the average cpu utilization now
+    instances = ec2.instances.filter(
+        Filters=[{'Name': 'instance.group-name', 'Values': ['worker_demo_security_group']}])
     sum = 0.0
     num_of_instance = 0
     num_of_new_instance = 0
@@ -156,7 +155,6 @@ while(1):
         continue
 
     # fetch the parameters from the database
-
     cnx = get_db()
     cursor = cnx.cursor()
     query = '''SELECT * FROM config_parameters WHERE id =1
@@ -209,6 +207,7 @@ while(1):
                                                                        }
                                                                    ])
 
+
     if (num_of_old_instance!=0):
         instances = ec2.instances.filter(
             Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
@@ -225,8 +224,10 @@ while(1):
                                                             }
                                                         ])
             instance.terminate()
+            i=i+1
             if (i >= num_of_old_instance):
                 break
+
 
 # delete load balancer
 # elb.delete_load_balancer(LoadBalancerName='myelb')
